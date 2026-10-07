@@ -12,7 +12,7 @@ spec:
   # Auto-discover subnets (your cluster tags)
   subnetSelectorTerms:
     - tags:
-        kubernetes.io/cluster/devops-dev-dev-eks-cluster: owned
+        kubernetes.io/cluster/devops-dev-dev-eks-cluster: shared
         kubernetes.io/role/internal-elb: "1"
   # Auto-discover security groups
   securityGroupSelectorTerms:
