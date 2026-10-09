@@ -1,15 +1,9 @@
-# core-acm: plan on pull request, apply on merge to main (push to main) or manual run on main.
+# core-acm: plan on non-main branch pushes; apply on main pushes or manual runs on main.
 name: core-acm
 
 on:
-  pull_request:
-    paths:
-      - "core-acm/**"
-      - ".github/workflows/core-acm.yml"
-      - ".github/workflows/terraform-project.yml"
-      - ".github/scripts/**"
   push:
-    branches: [main]
+    branches: ["**"]
     paths:
       - "core-acm/**"
       - ".github/workflows/core-acm.yml"
@@ -23,14 +17,14 @@ permissions:
   actions: read
 
 concurrency:
-  group: core-acm-${{ github.event_name == 'pull_request' && github.ref || 'apply' }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: core-acm-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   terraform:
     uses: ./.github/workflows/terraform-project.yml
     with:
       project: core-acm
-      mode: ${{ github.event_name == 'pull_request' && 'plan' || 'apply' }}
+      mode: ${{ github.ref == 'refs/heads/main' && 'apply' || 'plan' }}
       upstream_state_keys: route53/dev/terraform.tfstate
       upstream_workflows: core-route53.yml

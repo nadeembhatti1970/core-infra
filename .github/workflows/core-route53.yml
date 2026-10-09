@@ -1,15 +1,9 @@
-# core-route53: plan on pull request, apply on merge to main (push to main) or manual run on main.
+# core-route53: plan on non-main branch pushes; apply on main pushes or manual runs on main.
 name: core-route53
 
 on:
-  pull_request:
-    paths:
-      - "core-route53/**"
-      - ".github/workflows/core-route53.yml"
-      - ".github/workflows/terraform-project.yml"
-      - ".github/scripts/**"
   push:
-    branches: [main]
+    branches: ["**"]
     paths:
       - "core-route53/**"
       - ".github/workflows/core-route53.yml"
@@ -23,12 +17,12 @@ permissions:
   actions: read
 
 concurrency:
-  group: core-route53-${{ github.event_name == 'pull_request' && github.ref || 'apply' }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: core-route53-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   terraform:
     uses: ./.github/workflows/terraform-project.yml
     with:
       project: core-route53
-      mode: ${{ github.event_name == 'pull_request' && 'plan' || 'apply' }}
+      mode: ${{ github.ref == 'refs/heads/main' && 'apply' || 'plan' }}

@@ -1,15 +1,9 @@
-# core-eks-telemetry: plan on pull request, apply on merge to main (push to main) or manual run on main.
+# core-eks-telemetry: plan on non-main branch pushes; apply on main pushes or manual runs on main.
 name: core-eks-telemetry
 
 on:
-  pull_request:
-    paths:
-      - "core-eks-telemetry/**"
-      - ".github/workflows/core-eks-telemetry.yml"
-      - ".github/workflows/terraform-project.yml"
-      - ".github/scripts/**"
   push:
-    branches: [main]
+    branches: ["**"]
     paths:
       - "core-eks-telemetry/**"
       - ".github/workflows/core-eks-telemetry.yml"
@@ -23,15 +17,15 @@ permissions:
   actions: read
 
 concurrency:
-  group: core-eks-telemetry-${{ github.event_name == 'pull_request' && github.ref || 'apply' }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: core-eks-telemetry-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   terraform:
     uses: ./.github/workflows/terraform-project.yml
     with:
       project: core-eks-telemetry
-      mode: ${{ github.event_name == 'pull_request' && 'plan' || 'apply' }}
+      mode: ${{ github.ref == 'refs/heads/main' && 'apply' || 'plan' }}
       upstream_state_keys: vpc/dev/terraform.tfstate eks/dev/terraform.tfstate
       upstream_workflows: core-vpc.yml core-eks.yml
       k8s_manifests_dir: k8s-adot-collector

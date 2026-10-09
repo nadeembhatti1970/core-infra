@@ -1,5 +1,4 @@
-# github-oidc: plan on pull request, apply on merge to main (push to main) or manual run on main.
-# Bootstrap project: applied manually; CI runs static checks and tests only.
+# github-oidc: bootstrap project, applied manually; CI runs static checks and tests only.
 name: github-oidc
 
 on:

@@ -5,8 +5,8 @@
 #   (plan mode: kubectl apply --dry-run=client of the k8s-* manifests)
 # mode:
 #   static - no AWS credentials, no plan (bootstrap projects: s3-remote-backend, github-oidc)
-#   plan   - read-only plan role (pull_request)
-#   apply  - apply role (push to main = merged PR, or manual run on main)
+#   plan   - read-only plan role (push/manual run on a non-main branch)
+#   apply  - apply role (push to main, or manual run on main)
 name: terraform-project
 
 on:
@@ -100,7 +100,7 @@ jobs:
           role-duration-seconds: ${{ inputs.mode == 'apply' && 7200 || 3600 }}
 
       # During teardown hours upstream projects (e.g. core-eks) may be destroyed;
-      # a PR plan of a dependent project would then fail on missing remote state.
+      # a branch plan of a dependent project would then fail on missing remote state.
       - name: Check upstream state
         id: upstream
         if: inputs.mode == 'plan' && inputs.upstream_state_keys != ''
@@ -167,7 +167,7 @@ jobs:
         if: inputs.k8s_manifests_dir != ''
         run: "$GITHUB_WORKSPACE/.github/scripts/k8s_apply.sh ${{ inputs.k8s_manifests_dir }} validate"
 
-      # PR: dry-run the manifests against the live cluster with the read-only plan role.
+      # Branch plan: dry-run the manifests against the live cluster with the read-only plan role.
       # Skipped when the cluster or this project's state does not exist (e.g. after teardown).
       - name: kubectl apply --dry-run (plan)
         if: inputs.mode == 'plan' && inputs.k8s_manifests_dir != ''

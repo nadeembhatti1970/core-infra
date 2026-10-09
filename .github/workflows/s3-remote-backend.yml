@@ -1,5 +1,4 @@
-# s3-remote-backend: plan on pull request, apply on merge to main (push to main) or manual run on main.
-# Bootstrap project: applied manually; CI runs static checks and tests only.
+# s3-remote-backend: bootstrap project, applied manually; CI runs static checks and tests only.
 name: s3-remote-backend
 
 on:

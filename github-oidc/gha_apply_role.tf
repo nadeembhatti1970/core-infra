@@ -20,9 +20,8 @@ data "aws_iam_policy_document" "apply_trust" {
       values   = ["sts.amazonaws.com"]
     }
 
-    # Apply branch only (merge to main, scheduled teardown, manual runs on main);
-    # pull_request tokens carry sub "repo:<repo>:pull_request" and other branches
-    # carry their own ref, so neither can assume this role.
+    # Apply branch only (push to main, scheduled teardown, manual runs on main);
+    # pull_request tokens and other branch refs cannot assume this role.
     condition {
       test     = "StringEquals"
       variable = "${local.github_oidc_host}:sub"

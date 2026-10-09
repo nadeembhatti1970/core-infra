@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------
 # Unit tests: plan-only against a mocked AWS provider (no credentials needed)
-# Focus: OIDC trust boundaries (PR -> plan role only, branches -> apply role only)
+# Focus: OIDC trust boundaries (branch refs -> plan role; main -> apply role)
 # and the apply role's self-protection guardrails.
 # --------------------------------------------------------------------
 mock_provider "aws" {
@@ -53,15 +53,15 @@ run "oidc_provider_targets_github_with_sts_audience" {
   }
 }
 
-run "plan_role_trusts_only_pull_requests" {
+run "plan_role_trusts_branch_refs_only" {
   command = plan
 
   assert {
     condition = anytrue([
       for c in data.aws_iam_policy_document.plan_trust.statement[0].condition :
-      c.test == "StringEquals" && c.variable == "token.actions.githubusercontent.com:sub" && c.values == tolist(["repo:nadeembhatti1970/core-infra:pull_request"])
+      c.test == "StringLike" && c.variable == "token.actions.githubusercontent.com:sub" && c.values == tolist(["repo:nadeembhatti1970/core-infra:ref:refs/heads/*"])
     ])
-    error_message = "Plan role must only trust pull_request tokens from this repository (exact match)"
+    error_message = "Plan role must only trust branch-ref tokens from this repository"
   }
 
   assert {
@@ -70,6 +70,15 @@ run "plan_role_trusts_only_pull_requests" {
       c.variable == "token.actions.githubusercontent.com:aud" && c.values == tolist(["sts.amazonaws.com"])
     ])
     error_message = "Plan role trust must pin the sts.amazonaws.com audience"
+  }
+
+  assert {
+    condition = alltrue(flatten([
+      for c in data.aws_iam_policy_document.plan_trust.statement[0].condition : [
+        for v in c.values : !strcontains(v, "pull_request")
+      ]
+    ]))
+    error_message = "Plan role trust must not include pull_request subjects"
   }
 }
 

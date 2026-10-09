@@ -8,7 +8,7 @@ output "github_oidc_provider_arn" {
 }
 
 output "plan_role_arn" {
-  description = "Role assumed by pull_request workflows (set as repo variable AWS_PLAN_ROLE_ARN)"
+  description = "Read-only role assumed by branch plan workflows (set as repo variable AWS_PLAN_ROLE_ARN)"
   value       = aws_iam_role.plan.arn
 }
 

@@ -1,5 +1,5 @@
 ##############################################
-# Plan Role: assumed by pull_request workflows
+# Plan Role: assumed by workflows running on branches (never pull_request events)
 # Read-only AWS access plus Terraform state locking; used for
 # fmt/validate/checkov/plan/test but never apply.
 ##############################################
@@ -20,18 +20,18 @@ data "aws_iam_policy_document" "plan_trust" {
       values   = ["sts.amazonaws.com"]
     }
 
-    # Only pull_request events from this repository
+    # Branch refs only. GitHub pull_request tokens use a different subject.
     condition {
-      test     = "StringEquals"
+      test     = "StringLike"
       variable = "${local.github_oidc_host}:sub"
-      values   = ["repo:${var.github_repository}:pull_request"]
+      values   = ["repo:${var.github_repository}:ref:refs/heads/*"]
     }
   }
 }
 
 resource "aws_iam_role" "plan" {
   name                 = local.plan_role_name
-  description          = "GitHub Actions (pull_request) - Terraform plan for ${var.github_repository}"
+  description          = "GitHub Actions (branch pushes) - read-only Terraform plan for ${var.github_repository}"
   assume_role_policy   = data.aws_iam_policy_document.plan_trust.json
   max_session_duration = var.max_session_duration
 
