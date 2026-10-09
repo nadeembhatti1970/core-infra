@@ -21,6 +21,10 @@ locals {
   # GitHub OIDC issuer (without scheme) used in trust policy condition keys
   github_oidc_host = "token.actions.githubusercontent.com"
 
+  # GitHub immutable subject format: repo:OWNER@OWNER_ID/REPO@REPO_ID
+  github_repository_parts  = split("/", var.github_repository)
+  github_oidc_subject_repo = "repo:${local.github_repository_parts[0]}@${var.github_repository_owner_id}/${local.github_repository_parts[1]}@${var.github_repository_id}"
+
   # Role names; the apply role is denied from modifying anything matching local.protected_role_pattern
   plan_role_name         = "${local.name}-gha-terraform-plan"
   apply_role_name        = "${local.name}-gha-terraform-apply"

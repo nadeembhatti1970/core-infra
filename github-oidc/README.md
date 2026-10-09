@@ -43,6 +43,8 @@ No modules.
 | <a name="input_business_division"></a> [business\_division](#input\_business\_division) | Business Division in the large organization this infrastructure belongs to | `string` | `"devops"` | no |
 | <a name="input_environment_name"></a> [environment\_name](#input\_environment\_name) | Environment name used in resource names and tags | `string` | `"dev"` | no |
 | <a name="input_github_repository"></a> [github\_repository](#input\_github\_repository) | GitHub repository (owner/name) whose Actions workflows may assume the roles | `string` | `"nadeembhatti1970/core-infra"` | no |
+| <a name="input_github_repository_id"></a> [github\_repository\_id](#input\_github\_repository\_id) | Immutable GitHub repository ID used in OIDC subject claims | `string` | `"1399975654"` | no |
+| <a name="input_github_repository_owner_id"></a> [github\_repository\_owner\_id](#input\_github\_repository\_owner\_id) | Immutable GitHub user or organization ID used in OIDC subject claims | `string` | `"13079239"` | no |
 | <a name="input_max_session_duration"></a> [max\_session\_duration](#input\_max\_session\_duration) | Maximum session duration in seconds for the GitHub Actions roles | `number` | `7200` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to GitHub OIDC resources | `map(string)` | <pre>{<br/>  "Terraform": "true"<br/>}</pre> | no |
 | <a name="input_tfstate_bucket_name"></a> [tfstate\_bucket\_name](#input\_tfstate\_bucket\_name) | Name of the S3 bucket used as the Terraform remote backend | `string` | `"tfstate-dev-eu-west-2-8cbztj"` | no |

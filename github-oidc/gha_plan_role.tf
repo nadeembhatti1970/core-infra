@@ -5,7 +5,7 @@
 ##############################################
 data "aws_iam_policy_document" "plan_trust" {
   statement {
-    sid     = "GitHubActionsPullRequests"
+    sid     = "GitHubActionsBranchPlans"
     effect  = "Allow"
     actions = ["sts:AssumeRoleWithWebIdentity"]
 
@@ -24,7 +24,7 @@ data "aws_iam_policy_document" "plan_trust" {
     condition {
       test     = "StringLike"
       variable = "${local.github_oidc_host}:sub"
-      values   = ["repo:${var.github_repository}:ref:refs/heads/*"]
+      values   = ["${local.github_oidc_subject_repo}:ref:refs/heads/*"]
     }
   }
 }

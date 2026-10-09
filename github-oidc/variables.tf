@@ -41,6 +41,20 @@ variable "github_repository" {
   }
 }
 
+# Immutable GitHub OIDC subject identifiers for this repository.
+# GitHub includes these IDs in the default sub claim for repositories created after 2026-07-15.
+variable "github_repository_owner_id" {
+  description = "Immutable GitHub user or organization ID used in OIDC subject claims"
+  type        = string
+  default     = "13079239"
+}
+
+variable "github_repository_id" {
+  description = "Immutable GitHub repository ID used in OIDC subject claims"
+  type        = string
+  default     = "1399975654"
+}
+
 # Only workflows running on this branch may assume the apply role
 variable "apply_branch" {
   description = "Git branch whose workflows (push/merge, schedule, dispatch) may assume the apply role"

@@ -25,7 +25,7 @@ data "aws_iam_policy_document" "apply_trust" {
     condition {
       test     = "StringEquals"
       variable = "${local.github_oidc_host}:sub"
-      values   = ["repo:${var.github_repository}:ref:refs/heads/${var.apply_branch}"]
+      values   = ["${local.github_oidc_subject_repo}:ref:refs/heads/${var.apply_branch}"]
     }
   }
 }

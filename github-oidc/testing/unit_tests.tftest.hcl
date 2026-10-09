@@ -32,11 +32,13 @@ mock_provider "aws" {
 }
 
 variables {
-  aws_region          = "eu-west-2"
-  environment_name    = "dev"
-  business_division   = "devops"
-  github_repository   = "nadeembhatti1970/core-infra"
-  tfstate_bucket_name = "tfstate-dev-eu-west-2-8cbztj"
+  aws_region                 = "eu-west-2"
+  environment_name           = "dev"
+  business_division          = "devops"
+  github_repository          = "nadeembhatti1970/core-infra"
+  github_repository_owner_id = "13079239"
+  github_repository_id       = "1399975654"
+  tfstate_bucket_name        = "tfstate-dev-eu-west-2-8cbztj"
 }
 
 run "oidc_provider_targets_github_with_sts_audience" {
@@ -59,7 +61,7 @@ run "plan_role_trusts_branch_refs_only" {
   assert {
     condition = anytrue([
       for c in data.aws_iam_policy_document.plan_trust.statement[0].condition :
-      c.test == "StringLike" && c.variable == "token.actions.githubusercontent.com:sub" && c.values == tolist(["repo:nadeembhatti1970/core-infra:ref:refs/heads/*"])
+      c.test == "StringLike" && c.variable == "token.actions.githubusercontent.com:sub" && c.values == tolist(["repo:nadeembhatti1970@13079239/core-infra@1399975654:ref:refs/heads/*"])
     ])
     error_message = "Plan role must only trust branch-ref tokens from this repository"
   }
@@ -88,7 +90,7 @@ run "apply_role_trusts_only_main_branch" {
   assert {
     condition = anytrue([
       for c in data.aws_iam_policy_document.apply_trust.statement[0].condition :
-      c.test == "StringEquals" && c.variable == "token.actions.githubusercontent.com:sub" && c.values == tolist(["repo:nadeembhatti1970/core-infra:ref:refs/heads/main"])
+      c.test == "StringEquals" && c.variable == "token.actions.githubusercontent.com:sub" && c.values == tolist(["repo:nadeembhatti1970@13079239/core-infra@1399975654:ref:refs/heads/main"])
     ])
     error_message = "Apply role must only trust the main branch (exact match, no wildcards)"
   }
@@ -173,7 +175,7 @@ run "apply_branch_is_configurable" {
   assert {
     condition = anytrue([
       for c in data.aws_iam_policy_document.apply_trust.statement[0].condition :
-      c.variable == "token.actions.githubusercontent.com:sub" && c.values == tolist(["repo:nadeembhatti1970/core-infra:ref:refs/heads/release"])
+      c.variable == "token.actions.githubusercontent.com:sub" && c.values == tolist(["repo:nadeembhatti1970@13079239/core-infra@1399975654:ref:refs/heads/release"])
     ])
     error_message = "Apply role trust must follow var.apply_branch"
   }
