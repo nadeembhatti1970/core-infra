@@ -1,6 +1,7 @@
 ##############################################
 # Public ACM Certificate (DNS validated)
 ##############################################
+# checkov:skip=CKV2_AWS_71:Wildcard SAN is required to cover first-level subdomains used by ingress hosts.
 resource "aws_acm_certificate" "main" {
   domain_name               = local.zone_name
   subject_alternative_names = local.subject_alternative_names
