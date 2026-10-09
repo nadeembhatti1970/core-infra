@@ -15,7 +15,15 @@ resource "helm_release" "secrets_store_csi_driver" {
       name  = "syncSecret.enabled"
       value = "true"
     },
-  ]    
+    {
+      name  = "tokenRequests[0].audience"
+      value = "sts.amazonaws.com"
+    },
+    {
+      name  = "tokenRequests[1].audience"
+      value = "pods.eks.amazonaws.com"
+    },
+  ]
 
   # Wait until all pods are ready
   wait            = true

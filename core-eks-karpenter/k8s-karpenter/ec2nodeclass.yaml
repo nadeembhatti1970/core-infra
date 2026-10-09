@@ -8,7 +8,7 @@ spec:
   amiSelectorTerms:
     - alias: al2023@latest
   # Node IAM role created in Terraform
-  role: "arn:aws:iam::180789647333:role/devops-dev-karpenter-node-role"
+  role: "arn:aws:iam::042170206259:role/devops-dev-karpenter-node-role"
   # Auto-discover subnets (your cluster tags)
   subnetSelectorTerms:
     - tags:
