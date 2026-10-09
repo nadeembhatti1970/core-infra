@@ -62,6 +62,16 @@ override_data {
   }
 }
 
+override_data {
+  target = data.terraform_remote_state.github_oidc
+  values = {
+    outputs = {
+      plan_role_arn  = "arn:aws:iam::111122223333:role/devops-dev-gha-terraform-plan"
+      apply_role_arn = "arn:aws:iam::111122223333:role/devops-dev-gha-terraform-apply"
+    }
+  }
+}
+
 variables {
   aws_region                           = "eu-west-2"
   environment_name                     = "dev"
@@ -304,5 +314,24 @@ run "subnet_tags_applied_for_load_balancers" {
   assert {
     condition     = alltrue([for t in aws_ec2_tag.eks_subnet_tag_private_cluster : t.key == "kubernetes.io/cluster/devops-dev-dev-eks-cluster" && t.value == "shared"])
     error_message = "Private subnets must carry the shared cluster discovery tag"
+  }
+}
+
+run "ci_plan_role_gets_read_only_cluster_access" {
+  command = plan
+
+  assert {
+    condition     = aws_eks_access_entry.ci_plan.principal_arn == "arn:aws:iam::111122223333:role/devops-dev-gha-terraform-plan"
+    error_message = "CI plan role must have an EKS access entry"
+  }
+
+  assert {
+    condition     = aws_eks_access_policy_association.ci_plan_view.policy_arn == "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminViewPolicy"
+    error_message = "CI plan role must only get the read-only AmazonEKSAdminViewPolicy"
+  }
+
+  assert {
+    condition     = aws_eks_access_policy_association.ci_plan_view.access_scope[0].type == "cluster"
+    error_message = "CI plan role view access must be cluster-scoped (CRDs such as NodePool are cluster-scoped)"
   }
 }

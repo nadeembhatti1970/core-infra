@@ -1,0 +1,37 @@
+# core-eks-karpenter: plan on pull request, apply on merge to main (push to main) or manual run on main.
+name: core-eks-karpenter
+
+on:
+  pull_request:
+    paths:
+      - "core-eks-karpenter/**"
+      - ".github/workflows/core-eks-karpenter.yml"
+      - ".github/workflows/terraform-project.yml"
+      - ".github/scripts/**"
+  push:
+    branches: [main]
+    paths:
+      - "core-eks-karpenter/**"
+      - ".github/workflows/core-eks-karpenter.yml"
+      - ".github/workflows/terraform-project.yml"
+      - ".github/scripts/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  actions: read
+
+concurrency:
+  group: core-eks-karpenter-${{ github.event_name == 'pull_request' && github.ref || 'apply' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  terraform:
+    uses: ./.github/workflows/terraform-project.yml
+    with:
+      project: core-eks-karpenter
+      mode: ${{ github.event_name == 'pull_request' && 'plan' || 'apply' }}
+      upstream_state_keys: vpc/dev/terraform.tfstate eks/dev/terraform.tfstate
+      upstream_workflows: core-vpc.yml core-eks.yml
+      k8s_manifests_dir: k8s-karpenter

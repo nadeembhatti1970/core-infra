@@ -357,7 +357,7 @@ spec:
     # ====================
     exporters:
       prometheusremotewrite:
-        endpoint: "https://aps-workspaces.eu-west-2.amazonaws.com/workspaces/ws-194b4e51-91dd-4803-881a-1290a1ca9eec/api/v1/remote_write"
+        endpoint: "${AMP_REMOTE_WRITE_ENDPOINT}"  # Rendered from terraform output amp_endpoint by .github/scripts/k8s_apply.sh
         auth:
           authenticator: sigv4auth
 

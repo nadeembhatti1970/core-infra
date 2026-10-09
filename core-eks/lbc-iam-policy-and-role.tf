@@ -1,6 +1,8 @@
 
 # Resource: Create AWS Load Balancer Controller IAM Policy 
 resource "aws_iam_policy" "lbc_iam_policy" {
+  # checkov:skip=CKV_AWS_290: Official AWS Load Balancer Controller policy; it creates ELBs/SGs/target groups whose ARNs are unknown in advance
+  # checkov:skip=CKV_AWS_355: Official AWS Load Balancer Controller policy; Describe*/Create* actions require "*" resources
   name        = "${local.name}-AWSLoadBalancerControllerIAMPolicy"
   path        = "/"
   description = "AWS Load Balancer Controller IAM Policy"

@@ -45,3 +45,8 @@ terraform.rc
 # Plan artifacts produced by the checkov plan-scan workflow (SKILL.md)
 tfplan.binary
 tfplan.json
+
+# terraform.tfvars files hold only non-secret settings (region, names, CIDRs) and
+# must be committed so CI plans/applies use the same values as local runs.
+# Secrets must never go in tfvars (see AGENTS.md guardrails).
+!terraform.tfvars

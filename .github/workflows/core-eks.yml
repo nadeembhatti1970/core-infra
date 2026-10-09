@@ -1,0 +1,36 @@
+# core-eks: plan on pull request, apply on merge to main (push to main) or manual run on main.
+name: core-eks
+
+on:
+  pull_request:
+    paths:
+      - "core-eks/**"
+      - ".github/workflows/core-eks.yml"
+      - ".github/workflows/terraform-project.yml"
+      - ".github/scripts/**"
+  push:
+    branches: [main]
+    paths:
+      - "core-eks/**"
+      - ".github/workflows/core-eks.yml"
+      - ".github/workflows/terraform-project.yml"
+      - ".github/scripts/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  actions: read
+
+concurrency:
+  group: core-eks-${{ github.event_name == 'pull_request' && github.ref || 'apply' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  terraform:
+    uses: ./.github/workflows/terraform-project.yml
+    with:
+      project: core-eks
+      mode: ${{ github.event_name == 'pull_request' && 'plan' || 'apply' }}
+      upstream_state_keys: vpc/dev/terraform.tfstate
+      upstream_workflows: core-vpc.yml

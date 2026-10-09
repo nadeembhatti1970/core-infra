@@ -1,0 +1,4 @@
+{
+  "_comment": "Resource addresses approved for deletion without replacement (destroy gate). Add an entry with a ticket reference before merging a change that removes a resource.",
+  "allowed_deletions": []
+}
