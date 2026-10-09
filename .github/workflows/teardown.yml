@@ -64,7 +64,7 @@ jobs:
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: ${{ vars.AWS_APPLY_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::042170206259:role/devops-dev-gha-terraform-apply
           role-session-name: gha-teardown-k8s-${{ github.run_id }}
 
       - name: Resolve cluster name
