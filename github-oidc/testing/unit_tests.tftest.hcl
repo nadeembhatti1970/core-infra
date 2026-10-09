@@ -151,6 +151,18 @@ run "apply_role_cannot_modify_bootstrap_or_state_bucket" {
   }
 }
 
+run "apply_role_can_discover_tagged_controller_resources" {
+  command = plan
+
+  assert {
+    condition = anytrue([
+      for s in data.aws_iam_policy_document.apply.statement :
+      s.sid == "DiscoverControllerManagedResources" && contains(s.actions, "tag:GetResources") && s.resources == toset(["*"])
+    ])
+    error_message = "Apply role must discover tagged load balancers during teardown"
+  }
+}
+
 run "role_names_and_session_follow_conventions" {
   command = plan
 
