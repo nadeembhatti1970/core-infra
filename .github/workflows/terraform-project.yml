@@ -1,0 +1,206 @@
+# Reusable pipeline for one Terraform project, implementing the AGENTS.md /
+# SKILL.md stages in order:
+#   fmt -> validate -> checkov (static) -> plan -> checkov (plan) + destroy gate -> test
+#   -> [apply] -> [kubectl apply of the project's k8s-* manifests]
+#   (plan mode: kubectl apply --dry-run=client of the k8s-* manifests)
+# mode:
+#   static - no AWS credentials, no plan (bootstrap projects: s3-remote-backend, github-oidc)
+#   plan   - read-only plan role (push/manual run on a non-main branch)
+#   apply  - apply role (push to main, or manual run on main)
+name: terraform-project
+
+on:
+  workflow_call:
+    inputs:
+      project:
+        description: Project directory, e.g. core-vpc
+        required: true
+        type: string
+      mode:
+        description: static | plan | apply
+        required: true
+        type: string
+      upstream_state_keys:
+        description: Space-separated state keys that must contain resources before planning (plan mode)
+        required: false
+        type: string
+        default: ""
+      upstream_workflows:
+        description: Space-separated workflow files to wait for on the same commit before applying (apply mode)
+        required: false
+        type: string
+        default: ""
+      k8s_manifests_dir:
+        description: Folder (relative to the project) of Kubernetes manifests to kubectl apply after terraform apply
+        required: false
+        type: string
+        default: ""
+      k8s_vars:
+        description: Space-separated VAR=terraform_output pairs substituted into the manifests
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+  id-token: write
+  actions: read
+
+env:
+  TF_VERSION: 1.16.5
+  CHECKOV_VERSION: 3.3.26
+  AWS_REGION: eu-west-2
+  TFSTATE_BUCKET: tfstate-dev-eu-west-2-8cbztj
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "false"
+
+jobs:
+  terraform:
+    name: ${{ inputs.project }} (${{ inputs.mode }})
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.project }}
+    steps:
+      - name: Guard apply branch
+        if: inputs.mode == 'apply' && github.ref != 'refs/heads/main'
+        working-directory: .
+        run: |
+          echo "::error::Applies only run on main (got ${GITHUB_REF})"
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install checkov
+        run: pip install --quiet "checkov==${CHECKOV_VERSION}"
+
+      # When one merge touches several projects, apply them in dependency order
+      - name: Wait for upstream workflows
+        if: inputs.mode == 'apply' && inputs.upstream_workflows != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: "$GITHUB_WORKSPACE/.github/scripts/wait_for_upstream.sh ${{ inputs.upstream_workflows }}"
+
+      - name: Configure AWS credentials (OIDC)
+        if: inputs.mode != 'static'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ inputs.mode == 'apply' && 'arn:aws:iam::042170206259:role/devops-dev-gha-terraform-apply' || 'arn:aws:iam::042170206259:role/devops-dev-gha-terraform-plan' }}
+          role-session-name: gha-${{ inputs.project }}-${{ github.run_id }}
+          role-duration-seconds: ${{ inputs.mode == 'apply' && 7200 || 3600 }}
+
+      # During teardown hours upstream projects (e.g. core-eks) may be destroyed;
+      # a branch plan of a dependent project would then fail on missing remote state.
+      - name: Check upstream state
+        id: upstream
+        if: inputs.mode == 'plan' && inputs.upstream_state_keys != ''
+        run: |
+          for key in ${{ inputs.upstream_state_keys }}; do
+            count=$(aws s3 cp "s3://${TFSTATE_BUCKET}/${key}" - 2>/dev/null \
+              | python3 -c 'import json,sys; print(len(json.load(sys.stdin).get("resources", [])))' 2>/dev/null || echo 0)
+            if [ "$count" = "0" ]; then
+              echo "::notice title=Plan skipped::Upstream state ${key} is empty (environment torn down?); skipping plan for ${{ inputs.project }}"
+              echo "skip_plan=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+          echo "skip_plan=false" >> "$GITHUB_OUTPUT"
+
+      - name: terraform init
+        run: |
+          if [ "${{ inputs.mode }}" = "static" ]; then
+            terraform init -backend=false -test-directory=testing
+          else
+            terraform init -test-directory=testing
+          fi
+
+      - name: terraform fmt
+        run: terraform fmt -check -recursive -diff
+
+      - name: terraform validate
+        run: terraform validate
+
+      - name: checkov (static)
+        run: checkov -d . --framework terraform --compact --quiet
+
+      - name: terraform plan
+        id: plan
+        if: inputs.mode != 'static' && steps.upstream.outputs.skip_plan != 'true'
+        run: |
+          terraform plan -lock-timeout=10m -out=tfplan.binary -no-color | tee plan.txt
+          terraform show -json tfplan.binary > tfplan.json
+          {
+            echo "### ${{ inputs.project }} plan"
+            echo '```'
+            grep -E '^(Plan:|No changes)' plan.txt || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: checkov (plan)
+        if: steps.plan.outcome == 'success'
+        run: |
+          skips=$("$GITHUB_WORKSPACE/.github/scripts/checkov_skips.sh" . || true)
+          if [ -n "$skips" ]; then
+            checkov -f tfplan.json --skip-check "$skips" --compact --quiet
+          else
+            checkov -f tfplan.json --compact --quiet
+          fi
+
+      - name: Destroy gate
+        if: steps.plan.outcome == 'success'
+        run: python3 "$GITHUB_WORKSPACE/.github/scripts/destroy_gate.py" tfplan.json testing/.checkov-allowlist.json
+
+      - name: terraform test
+        run: terraform test -test-directory=testing
+
+      - name: Validate Kubernetes manifests
+        if: inputs.k8s_manifests_dir != ''
+        run: "$GITHUB_WORKSPACE/.github/scripts/k8s_apply.sh ${{ inputs.k8s_manifests_dir }} validate"
+
+      # Branch plan: dry-run the manifests against the live cluster with the read-only plan role.
+      # Skipped when the cluster or this project's state does not exist (e.g. after teardown).
+      - name: kubectl apply --dry-run (plan)
+        if: inputs.mode == 'plan' && inputs.k8s_manifests_dir != ''
+        run: |
+          cluster=$(terraform output -raw eks_cluster_name 2>/dev/null || true)
+          if [ -z "$cluster" ] || ! aws eks describe-cluster --name "$cluster" >/dev/null 2>&1; then
+            echo "::notice title=Dry run skipped::Cluster not available; skipping kubectl dry run"
+            exit 0
+          fi
+          subst=""
+          for pair in ${{ inputs.k8s_vars }}; do
+            var="${pair%%=*}"; out="${pair#*=}"
+            # Value comes from current state; fall back to a placeholder before first apply
+            export "$var=$(terraform output -raw "$out" 2>/dev/null || echo "https://dry-run.invalid/${out}")"
+            subst="$subst \${$var}"
+          done
+          export K8S_SUBST_VARS="$subst"
+          "$GITHUB_WORKSPACE/.github/scripts/k8s_apply.sh" "${{ inputs.k8s_manifests_dir }}" dryrun "$cluster" "$AWS_REGION"
+
+      - name: terraform apply
+        id: apply
+        if: inputs.mode == 'apply' && steps.plan.outcome == 'success'
+        run: terraform apply -lock-timeout=10m -auto-approve tfplan.binary
+
+      - name: kubectl apply manifests
+        if: steps.apply.outcome == 'success' && inputs.k8s_manifests_dir != ''
+        run: |
+          subst=""
+          for pair in ${{ inputs.k8s_vars }}; do
+            var="${pair%%=*}"; out="${pair#*=}"
+            export "$var=$(terraform output -raw "$out")"
+            subst="$subst \${$var}"
+          done
+          export K8S_SUBST_VARS="$subst"
+          "$GITHUB_WORKSPACE/.github/scripts/k8s_apply.sh" "${{ inputs.k8s_manifests_dir }}" apply \
+            "$(terraform output -raw eks_cluster_name)" "$AWS_REGION"

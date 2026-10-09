@@ -1,0 +1,63 @@
+# Rebuild: one button that (re)creates the whole environment from main,
+# e.g. after the 17:00 teardown. Runs every project's full pipeline in mode
+# "apply" (fmt -> validate -> checkov -> plan -> plan scan + destroy gate -> test
+# -> apply), in dependency order, then kubectl-applies the k8s-* manifests.
+# Bootstrap projects (s3-remote-backend, github-oidc) are not touched.
+name: rebuild
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  actions: read
+
+# Shared with teardown so a rebuild and a teardown never overlap
+concurrency:
+  group: core-infra-lifecycle
+  cancel-in-progress: false
+
+jobs:
+  core-vpc:
+    uses: ./.github/workflows/terraform-project.yml
+    with:
+      project: core-vpc
+      mode: apply
+
+  core-eks:
+    needs: core-vpc
+    uses: ./.github/workflows/terraform-project.yml
+    with:
+      project: core-eks
+      mode: apply
+
+  core-eks-karpenter:
+    needs: core-eks
+    uses: ./.github/workflows/terraform-project.yml
+    with:
+      project: core-eks-karpenter
+      mode: apply
+      k8s_manifests_dir: k8s-karpenter
+
+  core-eks-telemetry:
+    needs: core-eks
+    uses: ./.github/workflows/terraform-project.yml
+    with:
+      project: core-eks-telemetry
+      mode: apply
+      k8s_manifests_dir: k8s-adot-collector
+      k8s_vars: AMP_REMOTE_WRITE_ENDPOINT=amp_endpoint
+
+  core-route53:
+    uses: ./.github/workflows/terraform-project.yml
+    with:
+      project: core-route53
+      mode: apply
+
+  core-acm:
+    needs: core-route53
+    uses: ./.github/workflows/terraform-project.yml
+    with:
+      project: core-acm
+      mode: apply

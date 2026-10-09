@@ -1,0 +1,32 @@
+# core-eks-telemetry: plan on non-main branch pushes; apply on main pushes or manual runs on main.
+name: core-eks-telemetry
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "core-eks-telemetry/**"
+      - ".github/workflows/core-eks-telemetry.yml"
+      - ".github/workflows/terraform-project.yml"
+      - ".github/scripts/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  actions: read
+
+concurrency:
+  group: core-eks-telemetry-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  terraform:
+    uses: ./.github/workflows/terraform-project.yml
+    with:
+      project: core-eks-telemetry
+      mode: ${{ github.ref == 'refs/heads/main' && 'apply' || 'plan' }}
+      upstream_state_keys: vpc/dev/terraform.tfstate eks/dev/terraform.tfstate
+      upstream_workflows: core-vpc.yml core-eks.yml
+      k8s_manifests_dir: k8s-adot-collector
+      k8s_vars: AMP_REMOTE_WRITE_ENDPOINT=amp_endpoint

@@ -98,6 +98,16 @@ override_data {
   }
 }
 
+override_data {
+  target = data.terraform_remote_state.github_oidc
+  values = {
+    outputs = {
+      plan_role_arn  = "arn:aws:iam::111122223333:role/devops-dev-gha-terraform-plan"
+      apply_role_arn = "arn:aws:iam::111122223333:role/devops-dev-gha-terraform-apply"
+    }
+  }
+}
+
 variables {
   aws_region                           = "eu-west-2"
   environment_name                     = "dev"

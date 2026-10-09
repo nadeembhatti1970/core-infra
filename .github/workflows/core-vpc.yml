@@ -1,0 +1,28 @@
+# core-vpc: plan on non-main branch pushes; apply on main pushes or manual runs on main.
+name: core-vpc
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "core-vpc/**"
+      - ".github/workflows/core-vpc.yml"
+      - ".github/workflows/terraform-project.yml"
+      - ".github/scripts/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  actions: read
+
+concurrency:
+  group: core-vpc-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  terraform:
+    uses: ./.github/workflows/terraform-project.yml
+    with:
+      project: core-vpc
+      mode: ${{ github.ref == 'refs/heads/main' && 'apply' || 'plan' }}

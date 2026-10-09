@@ -1,0 +1,30 @@
+# core-eks: plan on non-main branch pushes; apply on main pushes or manual runs on main.
+name: core-eks
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "core-eks/**"
+      - ".github/workflows/core-eks.yml"
+      - ".github/workflows/terraform-project.yml"
+      - ".github/scripts/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  actions: read
+
+concurrency:
+  group: core-eks-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  terraform:
+    uses: ./.github/workflows/terraform-project.yml
+    with:
+      project: core-eks
+      mode: ${{ github.ref == 'refs/heads/main' && 'apply' || 'plan' }}
+      upstream_state_keys: vpc/dev/terraform.tfstate
+      upstream_workflows: core-vpc.yml

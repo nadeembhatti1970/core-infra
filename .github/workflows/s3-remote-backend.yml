@@ -1,0 +1,34 @@
+# s3-remote-backend: bootstrap project, applied manually; CI runs static checks and tests only.
+name: s3-remote-backend
+
+on:
+  pull_request:
+    paths:
+      - "s3-remote-backend/**"
+      - ".github/workflows/s3-remote-backend.yml"
+      - ".github/workflows/terraform-project.yml"
+      - ".github/scripts/**"
+  push:
+    branches: [main]
+    paths:
+      - "s3-remote-backend/**"
+      - ".github/workflows/s3-remote-backend.yml"
+      - ".github/workflows/terraform-project.yml"
+      - ".github/scripts/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  actions: read
+
+concurrency:
+  group: s3-remote-backend-${{ github.event_name == 'pull_request' && github.ref || 'apply' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  terraform:
+    uses: ./.github/workflows/terraform-project.yml
+    with:
+      project: s3-remote-backend
+      mode: static

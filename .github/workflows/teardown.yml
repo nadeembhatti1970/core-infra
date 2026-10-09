@@ -1,0 +1,101 @@
+# Scheduled teardown at 17:00 UK time (Europe/London, DST-aware).
+# Destroys the costly environment, in reverse dependency order:
+#   k8s cleanup (ALBs, Karpenter nodes) -> core-eks-telemetry + core-eks-karpenter -> core-eks -> core-vpc
+# Kept: s3-remote-backend, github-oidc (bootstrap), core-route53 and core-acm
+# (re-creating the hosted zone would change its name servers at IONOS).
+# Bring the environment back with the "rebuild" workflow (Actions > rebuild > Run workflow on main).
+# This is an intentional destroy, so the destroy gate does not apply here.
+name: teardown
+
+on:
+  schedule:
+    # GitHub cron is UTC: 16:00 UTC = 17:00 BST, 17:00 UTC = 17:00 GMT. The gate job picks the right one.
+    - cron: "0 16 * * *"
+    - cron: "0 17 * * *"
+  # Manual run tears down immediately (requires repository write access)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: core-infra-lifecycle
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: eu-west-2
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+    steps:
+      - id: decide
+        env:
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          run=false
+          offset=$(TZ=Europe/London date +%z)
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            run=true
+          elif [ "$SCHEDULE" = "0 16 * * *" ] && [ "$offset" = "+0100" ]; then
+            run=true
+          elif [ "$SCHEDULE" = "0 17 * * *" ] && [ "$offset" = "+0000" ]; then
+            run=true
+          fi
+          echo "London offset ${offset}, event ${EVENT} '${SCHEDULE}', run=${run}"
+          echo "run=${run}" >> "$GITHUB_OUTPUT"
+
+  k8s-cleanup:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.16.5
+          terraform_wrapper: false
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::042170206259:role/devops-dev-gha-terraform-apply
+          role-session-name: gha-teardown-k8s-${{ github.run_id }}
+
+      - name: Resolve cluster name
+        id: cluster
+        working-directory: core-eks
+        run: |
+          terraform init -input=false >/dev/null
+          echo "name=$(terraform output -raw eks_cluster_name 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
+
+      - name: Remove controller-managed AWS resources
+        if: steps.cluster.outputs.name != ''
+        run: .github/scripts/k8s_predestroy_cleanup.sh "${{ steps.cluster.outputs.name }}" "$AWS_REGION"
+
+  destroy-cluster-addons:
+    needs: k8s-cleanup
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [core-eks-telemetry, core-eks-karpenter]
+    uses: ./.github/workflows/terraform-destroy.yml
+    with:
+      project: ${{ matrix.project }}
+
+  destroy-eks:
+    needs: destroy-cluster-addons
+    uses: ./.github/workflows/terraform-destroy.yml
+    with:
+      project: core-eks
+
+  destroy-vpc:
+    needs: destroy-eks
+    uses: ./.github/workflows/terraform-destroy.yml
+    with:
+      project: core-vpc

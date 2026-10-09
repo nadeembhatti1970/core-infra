@@ -1,0 +1,34 @@
+# github-oidc: bootstrap project, applied manually; CI runs static checks and tests only.
+name: github-oidc
+
+on:
+  pull_request:
+    paths:
+      - "github-oidc/**"
+      - ".github/workflows/github-oidc.yml"
+      - ".github/workflows/terraform-project.yml"
+      - ".github/scripts/**"
+  push:
+    branches: [main]
+    paths:
+      - "github-oidc/**"
+      - ".github/workflows/github-oidc.yml"
+      - ".github/workflows/terraform-project.yml"
+      - ".github/scripts/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  actions: read
+
+concurrency:
+  group: github-oidc-${{ github.event_name == 'pull_request' && github.ref || 'apply' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  terraform:
+    uses: ./.github/workflows/terraform-project.yml
+    with:
+      project: github-oidc
+      mode: static
