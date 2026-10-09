@@ -78,6 +78,14 @@ data "aws_iam_policy_document" "apply" {
     resources = ["*"]
   }
 
+  # Teardown discovers controller-created load balancers by their Kubernetes tags.
+  statement {
+    sid       = "DiscoverControllerManagedResources"
+    effect    = "Allow"
+    actions   = ["tag:GetResources"]
+    resources = ["*"]
+  }
+
   # Amazon Managed Grafana with AWS_SSO authentication registers an IAM Identity Center application
   statement {
     sid    = "GrafanaIdentityCenterIntegration"
