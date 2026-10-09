@@ -18,5 +18,5 @@ resource "aws_eks_addon" "cert_manager" {
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"
   addon_version               = data.aws_eks_addon_version.cert_manager_latest.version
-  tags = var.tags
+  tags                        = var.tags
 }

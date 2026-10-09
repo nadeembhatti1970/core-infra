@@ -2,7 +2,7 @@
 resource "helm_release" "aws_secrets_provider" {
   depends_on = [
     aws_eks_addon.podidentity,
-    aws_eks_node_group.private_nodes,      
+    aws_eks_node_group.private_nodes,
     helm_release.secrets_store_csi_driver
   ]
 
@@ -13,11 +13,11 @@ resource "helm_release" "aws_secrets_provider" {
   namespace  = "kube-system"
 
   # Disable re-installation of CSI driver (already installed separately)
-  set = [ 
+  set = [
     {
-    name  = "secrets-store-csi-driver.install"
-    value = "false"
-  }
+      name  = "secrets-store-csi-driver.install"
+      value = "false"
+    }
   ]
 
   # Wait for all pods to become ready

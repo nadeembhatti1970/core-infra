@@ -8,7 +8,7 @@ terraform {
     }
 
     helm = {
-      source  = "hashicorp/helm"
+      source = "hashicorp/helm"
       #version = ">= 3.0"
       version = "~> 3.0"
     }
@@ -22,11 +22,11 @@ terraform {
 
   # Remote backend configuration using S3 
   backend "s3" {
-    bucket         = "tfstate-dev-eu-west-2-8cbztj"         
-    key            = "karpenter/dev/terraform.tfstate"            
-    region         = "eu-west-2"                            
-    encrypt        = true                                   
-    use_lockfile   = true     
+    bucket       = "tfstate-dev-eu-west-2-8cbztj"
+    key          = "karpenter/dev/terraform.tfstate"
+    region       = "eu-west-2"
+    encrypt      = true
+    use_lockfile = true
   }
 }
 

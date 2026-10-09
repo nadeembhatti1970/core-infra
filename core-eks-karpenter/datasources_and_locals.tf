@@ -10,13 +10,13 @@ data "aws_region" "current" {}
 # --------------------------------------------------------------------
 locals {
   # Business division or team name (from variable)
-  owners = var.business_division  # Example: "devops"
+  owners = var.business_division # Example: "devops"
 
   # Environment name such as dev, staging, prod (from variable)
-  environment = var.environment_name  # Example: "dev"
+  environment = var.environment_name # Example: "dev"
 
   # Standardized naming prefix: "<division>-<env>"
-  name = "${local.owners}-${local.environment}"  # Example: "devops-dev"
+  name = "${local.owners}-${local.environment}" # Example: "devops-dev"
 
   # Cluster Name
   cluster_name = data.terraform_remote_state.eks.outputs.eks_cluster_name

@@ -16,7 +16,7 @@ data "aws_iam_policy_document" "adot_collector_assume" {
 # ADOT Collector IAM Role for Pod Identity
 # IAM Role - ADOT Collector
 resource "aws_iam_role" "adot_collector" {
-  name = "${local.cluster_name}-adot-collector-role"
+  name               = "${local.cluster_name}-adot-collector-role"
   assume_role_policy = data.aws_iam_policy_document.adot_collector_assume.json
 }
 

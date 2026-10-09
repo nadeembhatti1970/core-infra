@@ -79,7 +79,7 @@ variable "cluster_endpoint_public_access_cidrs" {
 variable "tags" {
   description = "Tags to apply to EKS and related resources"
   type        = map(string)
-  default     = {
+  default = {
     Terraform = "true"
   }
 }

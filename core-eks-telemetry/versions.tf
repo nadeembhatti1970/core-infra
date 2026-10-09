@@ -21,11 +21,11 @@ terraform {
 
   # Remote backend configuration using S3 
   backend "s3" {
-    bucket         = "tfstate-dev-eu-west-2-8cbztj"         
-    key            = "opentelemetry/dev/terraform.tfstate"            
-    region         = "eu-west-2"                            
-    encrypt        = true                                   
-    use_lockfile   = true     
+    bucket       = "tfstate-dev-eu-west-2-8cbztj"
+    key          = "opentelemetry/dev/terraform.tfstate"
+    region       = "eu-west-2"
+    encrypt      = true
+    use_lockfile = true
   }
 }
 

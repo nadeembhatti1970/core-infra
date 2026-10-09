@@ -17,11 +17,11 @@ data "aws_eks_addon_version" "kube_state_metrics_latest" {
 resource "aws_eks_addon" "kube_state_metrics" {
   cluster_name  = data.terraform_remote_state.eks.outputs.eks_cluster_id
   addon_name    = "kube-state-metrics"
-  addon_version = data.aws_eks_addon_version.kube_state_metrics_latest.version  
+  addon_version = data.aws_eks_addon_version.kube_state_metrics_latest.version
   # Conflict resolution
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"
-  tags = var.tags
+  tags                        = var.tags
 }
 
 

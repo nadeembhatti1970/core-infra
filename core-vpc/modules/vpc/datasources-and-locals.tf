@@ -1,5 +1,6 @@
 # Datasources
 data "aws_availability_zones" "available" {
+  # checkov:skip=CKV_AWS_394: Pinning zone identities now could reshuffle the subnets of the live VPC; slice(0, 3) already bounds the result
   state = "available"
 }
 

@@ -16,10 +16,10 @@ resource "aws_eks_addon" "externaldns" {
     aws_eks_pod_identity_association.externaldns,
     aws_eks_addon.podidentity,
     aws_eks_node_group.private_nodes
-  ]  
-  cluster_name                = aws_eks_cluster.main.name
-  addon_name                  = "external-dns"
-  addon_version               = data.aws_eks_addon_version.externaldns_latest.version
+  ]
+  cluster_name  = aws_eks_cluster.main.name
+  addon_name    = "external-dns"
+  addon_version = data.aws_eks_addon_version.externaldns_latest.version
 
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"
@@ -27,9 +27,9 @@ resource "aws_eks_addon" "externaldns" {
   service_account_role_arn = aws_iam_role.externaldns_role.arn
 
   tags = {
-    Component   = "ExternalDNS"
-    ManagedBy   = "Terraform"
-    Project     = local.name
+    Component = "ExternalDNS"
+    ManagedBy = "Terraform"
+    Project   = local.name
   }
 }
 

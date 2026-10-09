@@ -3,7 +3,7 @@ resource "aws_grafana_workspace" "main" {
   name                     = "${local.cluster_name}-amg"
   description              = "Grafana workspace for ${local.cluster_name} EKS cluster monitoring"
   account_access_type      = "CURRENT_ACCOUNT"
-  authentication_providers = ["AWS_SSO"]  # AWS Identity Center
+  authentication_providers = ["AWS_SSO"] # AWS Identity Center
   permission_type          = "CUSTOMER_MANAGED"
   role_arn                 = aws_iam_role.amg_iam_role.arn
 

@@ -19,11 +19,11 @@ resource "aws_eks_addon" "ebs_csi" {
     aws_eks_addon.podidentity,
     aws_eks_node_group.private_nodes
   ]
-  cluster_name                = aws_eks_cluster.main.name
-  addon_name                  = "aws-ebs-csi-driver"
-  addon_version               = data.aws_eks_addon_version.ebs_csi_latest.version
+  cluster_name  = aws_eks_cluster.main.name
+  addon_name    = "aws-ebs-csi-driver"
+  addon_version = data.aws_eks_addon_version.ebs_csi_latest.version
 
-  service_account_role_arn    = aws_iam_role.ebs_csi_iam_role.arn
+  service_account_role_arn = aws_iam_role.ebs_csi_iam_role.arn
 
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"

@@ -2,7 +2,7 @@
 # ExternalDNS IAM Role (for Pod Identity)
 ##############################################
 resource "aws_iam_role" "externaldns_role" {
-  name = "${local.name}-externaldns-role"
+  name               = "${local.name}-externaldns-role"
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 

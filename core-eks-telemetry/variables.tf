@@ -33,7 +33,7 @@ variable "business_division" {
 variable "tags" {
   description = "Tags to apply to EKS and related resources"
   type        = map(string)
-  default     = {
+  default = {
     Terraform = "true"
   }
 }

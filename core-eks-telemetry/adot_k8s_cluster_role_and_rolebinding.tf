@@ -1,6 +1,7 @@
 # ADOT Collector RBAC Resources
 # Purpose: Grant OpenTelemetry Collector permissions to scrape metrics from Kubernetes API
 resource "kubernetes_service_account_v1" "adot_collector" {
+  # checkov:skip=CKV_K8S_21: Live ServiceAccount in "default" is referenced by the EKS pod identity association and the k8s-adot-collector manifests; moving it forces replacement and breaks collector auth
   metadata {
     name      = "adot-collector"
     namespace = "default"

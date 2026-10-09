@@ -3,11 +3,14 @@
 # This is the control plane for Kubernetes on AWS
 # ------------------------------------------------------------------------------
 resource "aws_eks_cluster" "main" {
+  # checkov:skip=CKV_AWS_339: cluster_version is pinned via var.cluster_version (1.36 in tfvars), a current EKS version; checkov's supported-version list lags EKS releases
+  # checkov:skip=CKV_AWS_38: Public endpoint required for Terraform/kubectl from operator workstations; allowed CIDRs are configurable via var.cluster_endpoint_public_access_cidrs
+  # checkov:skip=CKV_AWS_39: Public endpoint required for Terraform/kubectl from operator workstations; allowed CIDRs are configurable via var.cluster_endpoint_public_access_cidrs
   # Full cluster name built from business + environment + cluster_name
-  name     = local.eks_cluster_name
+  name = local.eks_cluster_name
 
   # Kubernetes version to use for the control plane
-  version  = var.cluster_version
+  version = var.cluster_version
 
   # IAM role used by EKS to manage the control plane
   role_arn = aws_iam_role.eks_cluster.arn
@@ -21,10 +24,10 @@ resource "aws_eks_cluster" "main" {
     endpoint_private_access = var.cluster_endpoint_private_access
 
     # Allow access to public endpoint (from internet, controlled via CIDRs)
-    endpoint_public_access  = var.cluster_endpoint_public_access
+    endpoint_public_access = var.cluster_endpoint_public_access
 
     # List of CIDRs allowed to reach the public endpoint
-    public_access_cidrs     = var.cluster_endpoint_public_access_cidrs
+    public_access_cidrs = var.cluster_endpoint_public_access_cidrs
   }
 
   # Define the service CIDR range used by Kubernetes services (optional)
@@ -34,18 +37,28 @@ resource "aws_eks_cluster" "main" {
 
   # Enable EKS control plane logging for visibility and debugging
   enabled_cluster_log_types = [
-    "api",                 # API server audit logs
-    "audit",               # Kubernetes audit logs
-    "authenticator",       # Authenticator logs for IAM auth
-    "controllerManager",   # Logs for controller manager
-    "scheduler"            # Logs for pod scheduling
+    "api",               # API server audit logs
+    "audit",             # Kubernetes audit logs
+    "authenticator",     # Authenticator logs for IAM auth
+    "controllerManager", # Logs for controller manager
+    "scheduler"          # Logs for pod scheduling
   ]
+
+  # Envelope-encrypt Kubernetes Secrets with a customer managed KMS key
+  # NOTE: Cannot be disabled once enabled on the cluster
+  encryption_config {
+    provider {
+      key_arn = aws_kms_key.eks_secrets.arn
+    }
+    resources = ["secrets"]
+  }
 
   # Ensure IAM policy attachments complete before cluster creation
   # Helps avoid race conditions during provisioning and destroy
   depends_on = [
     aws_iam_role_policy_attachment.eks_cluster_policy,
-    aws_iam_role_policy_attachment.eks_vpc_resource_controller
+    aws_iam_role_policy_attachment.eks_vpc_resource_controller,
+    aws_iam_role_policy.eks_cluster_secrets_kms
   ]
 
   # Common tags applied to the EKS cluster
@@ -70,7 +83,7 @@ resource "aws_eks_cluster" "main" {
   # - And we guarantee you (the creator) always have admin access
   # ----------------------------------------------------------------------------
   access_config {
-    authentication_mode = "API_AND_CONFIG_MAP" # Three options: CONFIG_MAP, API, API_AND_CONFIG_MAP
+    authentication_mode                         = "API_AND_CONFIG_MAP" # Three options: CONFIG_MAP, API, API_AND_CONFIG_MAP
     bootstrap_cluster_creator_admin_permissions = true
   }
 

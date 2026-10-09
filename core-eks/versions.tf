@@ -12,11 +12,11 @@ terraform {
 
   # Remote backend configuration using S3 
   backend "s3" {
-    bucket         = "tfstate-dev-eu-west-2-8cbztj"         # Name of the remote S3 bucket where the VPC state is stored
-    key            = "eks/dev/terraform.tfstate"            
-    region         = "eu-west-2"                            
-    encrypt        = true                                   
-    use_lockfile   = true     
+    bucket       = "tfstate-dev-eu-west-2-8cbztj" # Name of the remote S3 bucket where the VPC state is stored
+    key          = "eks/dev/terraform.tfstate"
+    region       = "eu-west-2"
+    encrypt      = true
+    use_lockfile = true
   }
 }
 

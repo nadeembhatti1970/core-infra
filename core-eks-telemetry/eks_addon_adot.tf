@@ -15,11 +15,11 @@ data "aws_eks_addon_version" "adot_latest" {
 # EKS Add-on: AWS Distro for OpenTelemetry (ADOT)
 resource "aws_eks_addon" "adot" {
   # Cert Manager should be installed and ready before adot eks addon
-  depends_on = [aws_eks_addon.cert_manager]  
+  depends_on    = [aws_eks_addon.cert_manager]
   cluster_name  = data.terraform_remote_state.eks.outputs.eks_cluster_id
   addon_name    = "adot"
   addon_version = data.aws_eks_addon_version.adot_latest.version
-  
+
   # Configuration for the addon
   configuration_values = jsonencode({
     manager = {
@@ -36,11 +36,11 @@ resource "aws_eks_addon" "adot" {
     }
     replicaCount = 1
   })
-  
+
   # Conflict resolution
   resolve_conflicts_on_create = "OVERWRITE"
   resolve_conflicts_on_update = "OVERWRITE"
-  tags = var.tags
+  tags                        = var.tags
 }
 
 

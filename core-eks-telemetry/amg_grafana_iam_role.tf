@@ -1,7 +1,7 @@
 # IAM ROLE FOR AMG
 resource "aws_iam_role" "amg_iam_role" {
-  name               = "${local.cluster_name}-amg-service-role"
-  description        = "IAM role for Amazon Managed Grafana"
+  name        = "${local.cluster_name}-amg-service-role"
+  description = "IAM role for Amazon Managed Grafana"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
