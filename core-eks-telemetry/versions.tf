@@ -16,6 +16,11 @@ terraform {
       source  = "hashicorp/kubernetes"
       version = ">= 2.28"
     }
+
+    grafana = {
+      source  = "grafana/grafana"
+      version = "~> 3.0"
+    }
   }
 
 
@@ -32,4 +37,9 @@ terraform {
 provider "aws" {
   # AWS region to use for all resources (from variables)
   region = var.aws_region
+}
+
+provider "grafana" {
+  url  = var.grafana_url
+  auth = var.grafana_api_token
 }
