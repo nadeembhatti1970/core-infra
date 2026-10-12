@@ -61,6 +61,12 @@ mock_provider "aws" {
     }
   }
 
+  mock_data "aws_iam_roles" {
+    defaults = {
+      arns = ["arn:aws:iam::111122223333:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_AdministratorAccess_mock"]
+    }
+  }
+
   mock_data "aws_eks_addon_version" {
     defaults = {
       version = "v1.0.0-eksbuild.1"

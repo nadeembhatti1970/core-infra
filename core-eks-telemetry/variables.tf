@@ -38,6 +38,21 @@ variable "tags" {
   }
 }
 
+# API token for provisioning Grafana dashboards. Create a Grafana service account
+# token with Editor or Admin permissions and pass it through TF_VAR_grafana_api_token.
+variable "grafana_api_token" {
+  description = "Sensitive Grafana service account token used to provision dashboards"
+  type        = string
+  sensitive   = true
+  default     = null
+}
+
+variable "grafana_url" {
+  description = "Full Amazon Managed Grafana workspace URL used to provision dashboards"
+  type        = string
+  default     = "http://localhost:3000"
+}
+
 
 
 

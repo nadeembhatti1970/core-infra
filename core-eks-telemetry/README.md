@@ -1,3 +1,7 @@
+## Grafana access
+
+Manage Grafana user access manually in the Amazon Managed Grafana workspace. This Terraform module provisions the Kubernetes dashboard when `grafana_url` and `grafana_api_token` are supplied.
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -5,6 +9,7 @@
 | ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.7 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.20 |
+| <a name="requirement_grafana"></a> [grafana](#requirement\_grafana) | ~> 3.0 |
 | <a name="requirement_helm"></a> [helm](#requirement\_helm) | ~> 3.0 |
 | <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | >= 2.28 |
 
@@ -13,6 +18,7 @@
 | Name | Version |
 | ---- | ------- |
 | <a name="provider_aws"></a> [aws](#provider\_aws) | 6.67.0 |
+| <a name="provider_grafana"></a> [grafana](#provider\_grafana) | ~> 3.0 |
 | <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | 3.3.0 |
 | <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
@@ -40,6 +46,7 @@ No modules.
 | [aws_iam_role_policy_attachment.amg_sns_policy_attachment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_iam_role_policy_attachment.amg_xray_readonly_attachment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_prometheus_workspace.amp](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/prometheus_workspace) | resource |
+| [grafana_dashboard.kubernetes_overview](https://registry.terraform.io/providers/grafana/grafana/latest/docs/resources/dashboard) | resource |
 | [kubernetes_cluster_role_binding_v1.otel_collector](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/cluster_role_binding_v1) | resource |
 | [kubernetes_cluster_role_v1.otel_collector](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/cluster_role_v1) | resource |
 | [kubernetes_service_account_v1.adot_collector](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/service_account_v1) | resource |
@@ -67,6 +74,8 @@ No modules.
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region to deploy resources | `string` | `"eu-west-2"` | no |
 | <a name="input_business_division"></a> [business\_division](#input\_business\_division) | Business Division in the large organization this infrastructure belongs to | `string` | `"devops"` | no |
 | <a name="input_environment_name"></a> [environment\_name](#input\_environment\_name) | Environment name used in resource names and tags | `string` | `"dev"` | no |
+| <a name="input_grafana_api_token"></a> [grafana\_api\_token](#input\_grafana\_api\_token) | Sensitive Grafana service account token used to provision dashboards | `string` | `null` | no |
+| <a name="input_grafana_url"></a> [grafana\_url](#input\_grafana\_url) | Full Amazon Managed Grafana workspace URL used to provision dashboards | `string` | `"http://localhost:3000"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to EKS and related resources | `map(string)` | <pre>{<br/>  "Terraform": "true"<br/>}</pre> | no |
 
 ## Outputs
