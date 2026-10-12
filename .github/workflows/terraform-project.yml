@@ -48,7 +48,6 @@ permissions:
 
 env:
   TF_VERSION: 1.16.5
-  CHECKOV_VERSION: 3.3.26
   AWS_REGION: eu-west-2
   TFSTATE_BUCKET: tfstate-dev-eu-west-2-8cbztj
   TF_IN_AUTOMATION: "true"
@@ -81,7 +80,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install checkov
-        run: pip install --quiet "checkov==${CHECKOV_VERSION}"
+        run: pip install --quiet -r "$GITHUB_WORKSPACE/requirements.txt"
 
       # When one merge touches several projects, apply them in dependency order
       - name: Wait for upstream workflows
