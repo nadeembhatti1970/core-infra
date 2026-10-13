@@ -8,6 +8,12 @@ locals {
     metadata = {
       name      = "root-applications"
       namespace = "argocd"
+      # The chart installs the Application CRD in the same release. Apply the
+      # root Application after the release resources make that CRD available.
+      annotations = {
+        "helm.sh/hook"               = "post-install"
+        "helm.sh/hook-delete-policy" = "before-hook-creation"
+      }
       finalizers = [
         "resources-finalizer.argocd.argoproj.io"
       ]
