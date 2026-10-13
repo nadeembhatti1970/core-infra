@@ -78,12 +78,24 @@ data "aws_iam_policy_document" "apply" {
     resources = ["*"]
   }
 
-  # Argo CD reads private Helm charts published to ECR by the SFTPGo workflow.
+  # Argo CD's OCI registry credential is an ECR authorization token minted by
+  # this role. The registry evaluates image pulls against the same principal.
   statement {
     sid       = "ReadEcrAuthorizationToken"
     effect    = "Allow"
     actions   = ["ecr:GetAuthorizationToken"]
     resources = ["*"]
+  }
+
+  statement {
+    sid    = "PullSftpgoHelmChartFromEcr"
+    effect = "Allow"
+    actions = [
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:BatchGetImage",
+      "ecr:GetDownloadUrlForLayer",
+    ]
+    resources = ["arn:${local.partition}:ecr:${var.aws_region}:${local.account_id}:repository/sftpgo"]
   }
 
   # Teardown discovers controller-created load balancers by their Kubernetes tags.
