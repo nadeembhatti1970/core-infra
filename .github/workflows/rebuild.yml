@@ -61,3 +61,10 @@ jobs:
     with:
       project: core-acm
       mode: apply
+
+  core-argocd:
+    needs: [core-eks, core-acm]
+    uses: ./.github/workflows/terraform-project.yml
+    with:
+      project: core-argocd
+      mode: apply

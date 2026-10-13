@@ -1,0 +1,89 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: sunday
+      time: "03:00"
+      timezone: Europe/London
+
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: sunday
+      time: "03:00"
+      timezone: Europe/London
+
+  - package-ecosystem: terraform
+    directory: "/core-acm"
+    schedule:
+      interval: weekly
+      day: sunday
+      time: "03:00"
+      timezone: Europe/London
+
+  - package-ecosystem: terraform
+    directory: "/core-argocd"
+    schedule:
+      interval: weekly
+      day: sunday
+      time: "03:00"
+      timezone: Europe/London
+
+  - package-ecosystem: terraform
+    directory: "/core-eks"
+    schedule:
+      interval: weekly
+      day: sunday
+      time: "03:00"
+      timezone: Europe/London
+
+  - package-ecosystem: terraform
+    directory: "/core-eks-karpenter"
+    schedule:
+      interval: weekly
+      day: sunday
+      time: "03:00"
+      timezone: Europe/London
+
+  - package-ecosystem: terraform
+    directory: "/core-eks-telemetry"
+    schedule:
+      interval: weekly
+      day: sunday
+      time: "03:00"
+      timezone: Europe/London
+
+  - package-ecosystem: terraform
+    directory: "/core-route53"
+    schedule:
+      interval: weekly
+      day: sunday
+      time: "03:00"
+      timezone: Europe/London
+
+  - package-ecosystem: terraform
+    directory: "/core-vpc"
+    schedule:
+      interval: weekly
+      day: sunday
+      time: "03:00"
+      timezone: Europe/London
+
+  - package-ecosystem: terraform
+    directory: "/github-oidc"
+    schedule:
+      interval: weekly
+      day: sunday
+      time: "03:00"
+      timezone: Europe/London
+
+  - package-ecosystem: terraform
+    directory: "/s3-remote-backend"
+    schedule:
+      interval: weekly
+      day: sunday
+      time: "03:00"
+      timezone: Europe/London

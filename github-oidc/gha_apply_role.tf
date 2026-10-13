@@ -78,6 +78,14 @@ data "aws_iam_policy_document" "apply" {
     resources = ["*"]
   }
 
+  # Argo CD reads private Helm charts published to ECR by the SFTPGo workflow.
+  statement {
+    sid       = "ReadEcrAuthorizationToken"
+    effect    = "Allow"
+    actions   = ["ecr:GetAuthorizationToken"]
+    resources = ["*"]
+  }
+
   # Teardown discovers controller-created load balancers by their Kubernetes tags.
   statement {
     sid       = "DiscoverControllerManagedResources"

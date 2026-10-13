@@ -49,6 +49,13 @@ resource "aws_iam_role_policy_attachment" "plan_readonly" {
 # State access: read state, write only S3 lock files, decrypt SSE-KMS (aws/s3) objects
 data "aws_iam_policy_document" "plan_state" {
   statement {
+    sid       = "ReadEcrAuthorizationTokenForPlan"
+    effect    = "Allow"
+    actions   = ["ecr:GetAuthorizationToken"]
+    resources = ["*"]
+  }
+
+  statement {
     sid       = "ListStateBucket"
     effect    = "Allow"
     actions   = ["s3:ListBucket"]
