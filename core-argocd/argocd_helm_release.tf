@@ -59,10 +59,12 @@ resource "helm_release" "argocd" {
       }
       repositories = {
         sftpgo-ecr = {
-          name      = "sftpgo-ecr"
-          type      = "helm"
-          url       = local.ecr_registry
-          enableOCI = true
+          name = "sftpgo-ecr"
+          type = "helm"
+          url  = local.ecr_registry
+          # The chart renders repository properties as base64 strings. Argo CD
+          # accepts enableOCI as the string "true" in repository secrets.
+          enableOCI = "true"
           username  = data.aws_ecr_authorization_token.sftpgo.user_name
           password  = data.aws_ecr_authorization_token.sftpgo.password
         }
