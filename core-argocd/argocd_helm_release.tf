@@ -1,5 +1,6 @@
 locals {
   argocd_domain = "${var.argocd_subdomain}.${trimsuffix(data.terraform_remote_state.route53.outputs.zone_name, ".")}"
+  ecr_registry  = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com"
 
   app_of_apps = {
     apiVersion = "argoproj.io/v1alpha1"
@@ -55,6 +56,16 @@ resource "helm_release" "argocd" {
     configs = {
       params = {
         "server.insecure" = true
+      }
+      repositories = {
+        sftpgo-ecr = {
+          name      = "sftpgo-ecr"
+          type      = "helm"
+          url       = local.ecr_registry
+          enableOCI = true
+          username  = data.aws_ecr_authorization_token.sftpgo.user_name
+          password  = data.aws_ecr_authorization_token.sftpgo.password
+        }
       }
     }
     server = {

@@ -27,3 +27,7 @@ data "terraform_remote_state" "acm" {
     region = var.aws_region
   }
 }
+
+data "aws_caller_identity" "current" {}
+
+data "aws_ecr_authorization_token" "sftpgo" {}

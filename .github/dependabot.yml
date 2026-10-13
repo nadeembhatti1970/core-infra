@@ -25,6 +25,14 @@ updates:
       timezone: Europe/London
 
   - package-ecosystem: terraform
+    directory: "/core-argocd"
+    schedule:
+      interval: weekly
+      day: sunday
+      time: "03:00"
+      timezone: Europe/London
+
+  - package-ecosystem: terraform
     directory: "/core-eks"
     schedule:
       interval: weekly

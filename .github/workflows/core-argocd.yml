@@ -1,0 +1,33 @@
+# Plan on non-main pushes; apply changes on main and refresh private ECR
+# credentials every six hours so Argo CD can continue pulling SFTPGo charts.
+name: core-argocd
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "core-argocd/**"
+      - ".github/workflows/core-argocd.yml"
+      - ".github/workflows/terraform-project.yml"
+      - ".github/scripts/**"
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *"
+
+permissions:
+  contents: read
+  id-token: write
+  actions: read
+
+concurrency:
+  group: core-argocd-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  terraform:
+    uses: ./.github/workflows/terraform-project.yml
+    with:
+      project: core-argocd
+      mode: ${{ github.ref == 'refs/heads/main' && 'apply' || 'plan' }}
+      upstream_state_keys: eks/dev/terraform.tfstate route53/dev/terraform.tfstate acm/dev/terraform.tfstate
+      upstream_workflows: core-eks.yml core-acm.yml

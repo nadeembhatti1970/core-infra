@@ -88,8 +88,14 @@ jobs:
     with:
       project: ${{ matrix.project }}
 
+  destroy-argocd:
+    needs: k8s-cleanup
+    uses: ./.github/workflows/terraform-destroy.yml
+    with:
+      project: core-argocd
+
   destroy-eks:
-    needs: destroy-cluster-addons
+    needs: [destroy-cluster-addons, destroy-argocd]
     uses: ./.github/workflows/terraform-destroy.yml
     with:
       project: core-eks
