@@ -1,3 +1,23 @@
+# core-acm
+
+Requests an ACM certificate for the domain managed by `core-route53`, creates
+the DNS validation records, and waits for certificate validation. The default
+subject alternative name is `*.bizopensource.com`; configure additional names
+with `subject_alternative_names`.
+
+Apply `core-route53` first. Once the certificate is validated, its
+`certificate_arn` output can be used by load balancers, including the Argo CD
+ingress. The Route 53 zone and certificate are retained by the scheduled
+environment teardown.
+
+The remote state key is `acm/dev/terraform.tfstate`. Run Terraform from this
+directory (`terraform init`, `terraform plan`, then `terraform apply`), or use
+the `core-acm` GitHub Actions workflow. CI plans changes on non-main branches
+and applies on `main`; tests are in `testing/`.
+
+The generated reference below lists this project's requirements, resources,
+inputs, and outputs.
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 

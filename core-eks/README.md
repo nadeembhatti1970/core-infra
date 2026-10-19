@@ -1,3 +1,25 @@
+# core-eks
+
+Creates the EKS cluster and private managed node group in the VPC from
+`core-vpc`. It also configures cluster access, encryption for Kubernetes
+secrets, subnet tags, and foundational components: the EKS Pod Identity Agent,
+EBS CSI driver, AWS Load Balancer Controller, ExternalDNS, and Secrets Store
+CSI/AWS Secrets and Configuration Provider.
+
+Apply `core-vpc` and `github-oidc` first. The remote state key is
+`eks/dev/terraform.tfstate`. The API endpoint is public by default and the
+default CIDR list allows `0.0.0.0/0`; set `cluster_endpoint_public_access_cidrs`
+to trusted ranges before applying in a shared environment. The GitHub Actions
+workflow plans on non-main branches and applies on `main`. Cluster tests are
+under `testing/`.
+
+Run `terraform init`, `terraform plan`, and `terraform apply` from this
+directory, or use the `core-eks` workflow. Review the generated plan for
+replacement or deletion of cluster resources before applying.
+
+The generated reference below lists this project's requirements, resources,
+inputs, and outputs.
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 

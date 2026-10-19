@@ -1,82 +1,48 @@
-# Terraform VPC Module – Single NAT Gateway Setup
+# VPC module
 
-![Terraform](https://img.shields.io/badge/Terraform-Module-623CE4?logo=terraform&logoColor=white)
-![AWS](https://img.shields.io/badge/AWS-Cloud-orange?logo=amazonaws)
-![License](https://img.shields.io/badge/License-MIT-green)
-![Maintained](https://img.shields.io/badge/Maintained-yes-brightgreen)
-![Open Source](https://img.shields.io/badge/Open%20Source-%E2%9C%94-blue)
-
-> ⚠️ *This module is not yet published on the Terraform Registry.*  
-> To use it, reference it locally or within your own GitHub repo.
-
----
-
-## Features
-
-- Provisions a **custom VPC** with user-defined CIDR block
-- Public & private subnets across **up to 3 Availability Zones**
-- Creates **a single NAT Gateway** for private subnets (cost-effective)
-- Manages route tables and subnet associations
-- Exports clean outputs to integrate with EC2, RDS, EKS etc.
-
----
-
-## File Structure
-
-| File                        | Purpose |
-|-----------------------------|---------|
-| `main.tf`                   | Core resources: VPC, subnets, NAT gateway, routes |
-| `variables.tf`              | Input variables for customization |
-| `outputs.tf`                | Output values to expose module data |
-| `datasources-and-locals.tf` | AZ lookups and subnet CIDR logic |
-| `README.md`                 | Module usage and documentation |
-
----
+Internal Terraform module used by [`core-vpc`](../../README.md). It creates a
+VPC, public and private subnets in three available Availability Zones,
+an Internet Gateway, and one NAT Gateway shared by the private subnets. The
+NAT Gateway is placed in the first public subnet; the public subnets route
+through the Internet Gateway and the private subnets route through the NAT
+Gateway.
 
 ## Usage
 
-```hcl
-module "vpc_single_nat" {
-  source = "../modules/vpc" # or use your Git repo path
+The module is consumed locally by the `core-vpc` root module:
 
+```hcl
+module "vpc" {
+  source           = "./modules/vpc"
   environment_name = var.environment_name
   vpc_cidr         = var.vpc_cidr
   subnet_newbits   = var.subnet_newbits
-  tags = var.tags
+  tags             = var.tags
 }
+```
 
-> ⚠️ This module auto-detects up to **3 availability zones** using `data.aws_availability_zones`.
+## Inputs
 
----
+| Name | Description | Default |
+| --- | --- | --- |
+| `environment_name` | Environment name used in resource names and tags | `"dev"` |
+| `vpc_cidr` | VPC IPv4 CIDR block | `"10.0.0.0/16"` |
+| `subnet_newbits` | Additional CIDR bits used for each subnet | `8` |
+| `tags` | Tags applied to module resources | `{ Terraform = "true" }` |
+
+With the default `/16` VPC and `subnet_newbits = 8`, the module creates `/24`
+subnets. Public subnet indices begin at zero; private subnet indices begin at
+10. Ensure the VPC CIDR has enough non-overlapping space for both sets.
 
 ## Outputs
 
-| Output Name          | Description                       |
-| -------------------- | --------------------------------- |
-| `vpc_id`             | ID of the created VPC             |
-| `public_subnet_ids`  | List of public subnet IDs         |
-| `private_subnet_ids` | List of private subnet IDs        |
-| `public_subnet_map`  | Map of public subnets by AZ name  |
+| Name | Description |
+| --- | --- |
+| `vpc_id` | Created VPC ID |
+| `public_subnet_ids` | Public subnet IDs |
+| `private_subnet_ids` | Private subnet IDs |
+| `public_subnet_map` | Public subnet IDs keyed by Availability Zone |
 
-> You can use these outputs to pass subnet IDs to other modules (e.g., EC2, RDS, ALB, EKS).
-
----
-
-## Best Practices
-
-* Create **one NAT Gateway** per region when cost savings matter.
-* Use `terraform.tfvars` or environment-specific tfvars files to reuse this module across `dev`, `test`, `prod`.
-* All **private subnets**, regardless of AZ, should route outbound traffic through the **single NAT Gateway**.
-*  Only **public subnets** should route through the **Internet Gateway (IGW)**.
-* Enable remote state backend for team collaboration.
-
----
-
-## Author
-
-**Kalyan Reddy Daida**
-Stacksimplify | Udemy Instructor
-Course: *DevOps Real-world Project Implementation on AWS Cloud*
-
----
-
+The single-NAT layout is intended for cost-conscious environments. It is not
+multi-AZ resilient for private-subnet egress and the NAT Gateway incurs
+ongoing charges.

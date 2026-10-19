@@ -1,3 +1,23 @@
+# s3-remote-backend
+
+Creates the S3 bucket used by the other projects for Terraform state. The
+bucket is versioned, encrypted, blocked from public access, and configured
+with a lifecycle rule. Its name includes a generated suffix and is exposed by
+the `tfstate_bucket_id` and `tfstate_bucket_arn` outputs.
+
+This is the first bootstrap step. It intentionally has no S3 backend
+configured, so Terraform stores its own state locally. Protect that state
+file, and confirm the resulting bucket name matches the bucket configured in
+each remote-backend project before initializing them. The standard workflows
+run static validation and tests only; apply this project manually using AWS
+credentials with permission to create the bucket.
+
+Run `terraform init`, `terraform plan`, and `terraform apply` from this
+directory. Tests and the destroy allow-list are in `testing/`.
+
+The generated reference below lists this project's requirements, resources,
+inputs, and outputs.
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 

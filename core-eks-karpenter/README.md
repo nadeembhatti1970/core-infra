@@ -1,3 +1,22 @@
+# core-eks-karpenter
+
+Installs Karpenter in the `core-eks` cluster and provisions its AWS-side
+permissions and supporting resources: controller and node IAM roles, EKS Pod
+Identity, Spot interruption queue and event rules, and node access entries.
+Kubernetes `EC2NodeClass` and `NodePool` manifests live in `k8s-karpenter/` and
+are applied by the project workflow after Terraform.
+
+Apply `core-vpc` and `core-eks` first. The remote state key is
+`karpenter/dev/terraform.tfstate`. Terraform and Kubernetes manifests are
+validated by CI; non-main branches plan and `main` applies. Run
+`terraform init`, `terraform plan`, and `terraform apply` from this directory,
+or use the `core-eks-karpenter` workflow. Karpenter can create EC2 capacity and
+incur charges; inspect NodePool limits and instance constraints before
+applying. Tests and the destroy allow-list are under `testing/`.
+
+The generated reference below lists this project's requirements, resources,
+inputs, and outputs.
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
