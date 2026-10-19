@@ -1,3 +1,25 @@
+# github-oidc
+
+Bootstraps GitHub Actions access to AWS using the GitHub OIDC identity
+provider and separate plan and apply IAM roles. Trust is configured for the
+repository and designated apply branch; the roles allow CI to plan or apply
+the infrastructure without long-lived AWS credentials.
+
+This project is a bootstrap exception: its workflow runs formatting,
+validation, security checks, and tests, but does not assume AWS credentials or
+run a plan/apply. Apply it manually after the S3 state bucket is available,
+using AWS credentials authorized to manage IAM. Its remote state key is
+`github-oidc/dev/terraform.tfstate`. The EKS project consumes this project's
+outputs for CI cluster access.
+
+Run `terraform init`, `terraform plan`, and `terraform apply` from this
+directory. Confirm `github_repository`, repository/owner IDs, and
+`apply_branch` match the intended GitHub repository before applying. Tests
+are in `testing/`.
+
+The generated reference below lists this project's requirements, resources,
+inputs, and outputs.
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 

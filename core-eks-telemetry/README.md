@@ -1,6 +1,23 @@
-## Grafana access
+# core-eks-telemetry
 
-Manage Grafana user access manually in the Amazon Managed Grafana workspace. This Terraform module provisions the Kubernetes dashboard when `grafana_url` and `grafana_api_token` are supplied.
+Adds Kubernetes telemetry to `core-eks`: AWS Distro for OpenTelemetry (ADOT),
+the kube-state-metrics and Prometheus node-exporter add-ons, an Amazon Managed
+Service for Prometheus workspace, and an Amazon Managed Grafana workspace. The
+ADOT collector sends metrics to AMP. A Kubernetes overview dashboard is in
+`dashboards/kubernetes-overview.json`; Terraform provisions it in Grafana when
+`grafana_url` and `grafana_api_token` are supplied. Manage Grafana user access
+in the Managed Grafana workspace.
+
+Apply `core-vpc` and `core-eks` first. The remote state key is
+`opentelemetry/dev/terraform.tfstate`. The workflow applies Kubernetes
+manifests from `k8s-adot-collector/` and substitutes the AMP remote-write
+endpoint. For dashboard provisioning, pass the Grafana service-account token
+as the sensitive `TF_VAR_grafana_api_token` value; never commit it to
+`terraform.tfvars` or source control.
+
+Run `terraform init`, `terraform plan`, and `terraform apply` from this
+directory, or use the `core-eks-telemetry` workflow. CI plans on non-main
+branches and applies on `main`. Tests are under `testing/`.
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements

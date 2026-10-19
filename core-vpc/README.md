@@ -1,3 +1,21 @@
+# core-vpc
+
+Builds the network foundation through the local
+[`modules/vpc`](./modules/vpc/README.md) module: a VPC, public and private
+subnets across the available Availability Zones, an Internet Gateway, and one
+NAT Gateway shared by the private subnets. This single-NAT design reduces
+development costs but makes outbound connectivity dependent on one gateway
+and its Availability Zone.
+
+Apply this project before `core-eks`. The remote state key is
+`vpc/dev/terraform.tfstate`; dependent projects read the VPC and subnet outputs
+from it. Run `terraform init`, `terraform plan`, and `terraform apply` from
+this directory, or use the `core-vpc` GitHub Actions workflow. Tests are in
+`testing/`.
+
+The generated reference below lists this project's requirements, resources,
+inputs, and outputs.
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 

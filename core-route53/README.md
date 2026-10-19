@@ -1,3 +1,20 @@
+# core-route53
+
+Creates the public Route 53 hosted zone for the platform domain (default:
+`bizopensource.com`). After creating the zone, configure the registered
+domain's name servers at IONOS using the `name_servers` output. DNS records
+from dependent projects, including ACM validation and application ingress,
+are then created in this zone.
+
+The remote state key is `route53/dev/terraform.tfstate`. Apply from this
+directory with `terraform init`, `terraform plan`, and `terraform apply`, or
+use the `core-route53` GitHub Actions workflow. The scheduled teardown
+deliberately keeps this hosted zone: replacing it would change its name
+servers at the registrar. Tests are in `testing/`.
+
+The generated reference below lists this project's requirements, resources,
+inputs, and outputs.
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
